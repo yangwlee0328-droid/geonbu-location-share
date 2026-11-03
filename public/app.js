@@ -27,9 +27,16 @@ $('btnCreate').onclick = () => socket.emit('create', { groupName: $('gname').val
 function initMap() {
   if (map) return setTimeout(() => map.invalidateSize(), 50);
   map = L.map('map').setView([37.5408, 127.0794], 15); // 건국대 서울캠퍼스 근처
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '&copy; OpenStreetMap',
+  // CARTO 지도를 기본으로 쓰고, 안 불러와지면 OpenStreetMap으로 전환
+  const carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19, subdomains: 'abcd', attribution: '&copy; OpenStreetMap &copy; CARTO',
   }).addTo(map);
+  let errs = 0;
+  carto.on('tileerror', () => {
+    if (++errs !== 5) return;
+    map.removeLayer(carto);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+  });
 }
 
 socket.on('state', (s) => { state = s; render(); });
