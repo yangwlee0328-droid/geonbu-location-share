@@ -27,15 +27,17 @@ $('btnCreate').onclick = () => socket.emit('create', { groupName: $('gname').val
 function initMap() {
   if (map) return setTimeout(() => map.invalidateSize(), 50);
   map = L.map('map').setView([37.5408, 127.0794], 15); // 건국대 서울캠퍼스 근처
-  // CARTO 지도를 기본으로 쓰고, 안 불러와지면 OpenStreetMap으로 전환
-  const carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19, subdomains: 'abcd', attribution: '&copy; OpenStreetMap &copy; CARTO',
+  // API 키가 필요 없는 지도만 사용: OpenStreetMap 기본, 안 불러와지면 Esri 지도로 전환
+  const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap', referrerPolicy: 'strict-origin-when-cross-origin',
   }).addTo(map);
   let errs = 0;
-  carto.on('tileerror', () => {
-    if (++errs !== 5) return;
-    map.removeLayer(carto);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+  osm.on('tileerror', () => {
+    if (++errs !== 3) return;
+    map.removeLayer(osm);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19, attribution: 'Tiles &copy; Esri',
+    }).addTo(map);
   });
 }
 
