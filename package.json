@@ -1,0 +1,20 @@
+{
+  "name": "geonbu-location-share",
+  "version": "1.0.0",
+  "description": "동의 기반 대학원생 실시간 위치 공유 웹앱",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.3.0",
+    "leaflet": "^1.9.4",
+    "socket.io": "^4.8.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
