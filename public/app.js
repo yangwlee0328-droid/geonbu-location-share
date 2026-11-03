@@ -89,8 +89,10 @@ function render() {
     else { mk.setLatLng([m.loc.lat, m.loc.lng]); mk.setIcon(icon); }
   }
   for (const [id, mk] of markers) if (!seen.has(id)) { mk.remove(); markers.delete(id); }
-  if (!fitted && markers.size) {
-    fitted = true;
+  // 새로 공유를 시작한 사람이 생기면 모두 보이도록 지도 범위를 다시 맞춤
+  const key = [...markers.keys()].sort().join(',');
+  if (markers.size && [...markers.keys()].some((id) => !(fitted || '').includes(id))) {
+    fitted = key;
     map.fitBounds(L.featureGroup([...markers.values()]).getBounds().pad(0.3), { maxZoom: 17 });
   }
 }
