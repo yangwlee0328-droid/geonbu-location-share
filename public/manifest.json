@@ -1,6 +1,6 @@
 {
-  "name": "건부대 위치공유",
-  "short_name": "위치공유",
+  "name": "건부추노",
+  "short_name": "건부추노",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f6f7f9",
