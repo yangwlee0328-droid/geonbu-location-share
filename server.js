@@ -59,8 +59,14 @@ io.on('connection', (socket) => {
 
   socket.on('create', ({ groupName, name }, ack) => {
     const c = newCode();
-    groups.set(c, { name: clean(groupName) || '우리 연구실', members: new Map() });
+    groups.set(c, { name: clean(groupName) || (clean(name) ? `${clean(name)}의 그룹` : '우리 그룹'), members: new Map() });
     join(c, name, ack);
+  });
+
+  // 초대 링크로 들어왔을 때 그룹 이름 미리 보여주기
+  socket.on('peek', ({ code: c }, ack) => {
+    const g = groups.get(clean(c).toUpperCase());
+    ack && ack(g ? { name: g.name, count: g.members.size } : { error: true });
   });
 
   socket.on('join', ({ code: c, name }, ack) => {

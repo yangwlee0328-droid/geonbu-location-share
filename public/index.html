@@ -12,126 +12,97 @@
 <meta name="theme-color" content="#2563eb">
 <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
 <style>
-  :root { --bg:#f6f7f9; --card:#fff; --text:#1c1f23; --muted:#6b7280; --line:#e5e7eb; --accent:#2563eb; --on:#16a34a; --off:#9ca3af; --warn:#b45309; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#111317; --card:#1b1e24; --text:#e8eaed; --muted:#9aa0a6; --line:#2c3038; --accent:#60a5fa; --on:#22c55e; --off:#6b7280; --warn:#f59e0b; } }
-  * { box-sizing: border-box; }
-  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif; }
+  :root { --bg:#f5f6f8; --card:#fff; --text:#16181d; --muted:#6b7280; --line:#e6e8ec; --blue:#2563eb; --green:#16a34a; --red:#dc2626; --grey:#c4c8cf; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f1115; --card:#1a1d23; --text:#eceef1; --muted:#9aa0a8; --line:#2b2f37; --blue:#3b82f6; --green:#22c55e; --red:#ef4444; --grey:#4b5058; } }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif; }
   .hidden { display:none !important; }
-  button { font:inherit; cursor:pointer; border:0; border-radius:10px; padding:12px 16px; background:var(--accent); color:#fff; font-weight:600; }
-  button.ghost { background:transparent; color:var(--text); border:1px solid var(--line); }
-  input, select { font:inherit; width:100%; padding:12px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--text); }
-  label { font-size:13px; color:var(--muted); display:block; margin:12px 0 6px; }
+  button { font:inherit; cursor:pointer; border:0; }
+  .big { width:100%; padding:17px; border-radius:16px; font-size:17px; font-weight:700; background:var(--blue); color:#fff; }
+  .big.stop { background:var(--card); color:var(--red); border:2px solid var(--red); }
+  .link { background:none; color:var(--muted); font-size:14px; padding:10px; text-decoration:underline; text-underline-offset:3px; }
+  input { font:inherit; font-size:17px; width:100%; padding:16px; border-radius:14px; border:1.5px solid var(--line); background:var(--card); color:var(--text); outline:none; }
+  input:focus { border-color:var(--blue); }
 
-  #join { max-width:420px; margin:0 auto; padding:40px 16px; }
-  #join h1 { font-size:24px; margin:0 0 6px; }
-  #join p.sub { color:var(--muted); margin:0 0 24px; line-height:1.5; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:16px; }
-  .row { display:flex; gap:8px; margin-top:12px; } .row > * { flex:1; }
-  .err { color:#dc2626; font-size:14px; min-height:20px; margin-top:8px; }
+  /* 시작 화면 */
+  #join { min-height:100%; display:flex; flex-direction:column; justify-content:center; max-width:400px; margin:0 auto; padding:32px 20px; gap:14px; }
+  #join .logo { font-size:48px; text-align:center; }
+  #join h1 { margin:0; text-align:center; font-size:28px; }
+  #join .sub { margin:0 0 18px; text-align:center; color:var(--muted); line-height:1.5; }
+  #invited { text-align:center; font-weight:600; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
+  .err { color:var(--red); text-align:center; min-height:20px; font-size:14px; }
 
-  #app { display:flex; height:100%; }
-  #map { flex:1; }
-  #panel { width:340px; overflow:auto; background:var(--card); border-left:1px solid var(--line); padding:16px; }
-  @media (max-width: 760px) {
-    #app { flex-direction:column; }
-    #map { flex:none; height:52vh; }
-    #panel { width:auto; flex:1; border-left:0; border-top:1px solid var(--line); }
-  }
-  .grp { display:flex; justify-content:space-between; align-items:center; }
-  .grp h2 { margin:0; font-size:18px; }
-  .code { font-family:ui-monospace, monospace; font-size:13px; color:var(--muted); }
-  .share { margin:16px 0; padding:14px; border-radius:12px; border:1px solid var(--line); }
-  .share .status { font-weight:700; margin-bottom:8px; }
-  .share.on { border-color:var(--on); }
-  .share.on .status { color:var(--on); }
-  .members h3 { font-size:14px; color:var(--muted); margin:18px 0 8px; font-weight:600; }
-  .m { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }
-  .dot { width:10px; height:10px; border-radius:50%; background:var(--off); flex:none; }
-  .dot.on { background:var(--on); }
-  .m .name { flex:1; }
-  .m .meta { font-size:12px; color:var(--muted); }
-  .m button { padding:6px 10px; font-size:13px; }
-  .note { font-size:12px; color:var(--muted); line-height:1.5; margin-top:16px; }
+  /* 메인 화면 */
+  #app { position:fixed; inset:0; }
+  #map { position:absolute; inset:0; z-index:0; }
+  .top { position:absolute; top:max(12px, env(safe-area-inset-top)); left:12px; right:12px; display:flex; justify-content:space-between; gap:8px; z-index:500; pointer-events:none; }
+  .pill { pointer-events:auto; background:var(--card); color:var(--text); border-radius:999px; padding:10px 16px; font-weight:700; font-size:15px; box-shadow:0 2px 10px rgba(0,0,0,.15); }
+  .pill.invite { background:var(--blue); color:#fff; }
+  .sheet { position:absolute; left:0; right:0; bottom:0; z-index:500; background:var(--card); border-radius:22px 22px 0 0; box-shadow:0 -4px 20px rgba(0,0,0,.12); padding:18px 18px max(14px, env(safe-area-inset-bottom)); max-width:520px; margin:0 auto; }
+  .status { display:flex; align-items:center; gap:10px; font-size:17px; font-weight:700; margin-bottom:14px; }
+  .status .dot { width:12px; height:12px; }
+  .status small { display:block; font-weight:400; color:var(--muted); font-size:13px; margin-top:2px; }
+  .dot { width:9px; height:9px; border-radius:50%; background:var(--grey); flex:none; }
+  .dot.on { background:var(--green); box-shadow:0 0 0 4px color-mix(in srgb, var(--green) 25%, transparent); }
+  .who { margin-top:16px; font-size:13px; color:var(--muted); }
+  .chips { display:flex; gap:8px; overflow-x:auto; padding:8px 0 2px; scrollbar-width:none; }
+  .chip { display:flex; align-items:center; gap:7px; white-space:nowrap; padding:9px 13px; border-radius:999px; background:var(--bg); color:var(--text); font-size:14px; border:1px solid var(--line); }
+  .chip[disabled] { opacity:.6; cursor:default; }
+  .foot { text-align:center; margin-top:4px; }
 
-  .modal { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:9999; padding:16px; }
-  .modal .card { max-width:420px; width:100%; }
-  .modal h3 { margin-top:0; }
-  .modal ul { padding-left:18px; line-height:1.7; margin:8px 0 16px; }
-  .pin { background:var(--accent); color:#fff; border-radius:12px; padding:2px 8px; font-size:12px; font-weight:700; white-space:nowrap; border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.3); }
-  .pin.me { background:var(--on); }
+  /* 선택 창 */
+  .modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.45); display:flex; align-items:flex-end; justify-content:center; }
+  .modal .box { background:var(--card); width:100%; max-width:520px; border-radius:22px 22px 0 0; padding:22px 18px max(16px, env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:10px; }
+  .modal h3 { margin:0; font-size:20px; }
+  .modal p { margin:0 0 6px; color:var(--muted); line-height:1.5; font-size:14px; }
+  .opt { width:100%; padding:16px; border-radius:14px; font-size:16px; font-weight:600; background:var(--bg); color:var(--text); border:1.5px solid var(--line); }
+  .opt:active { border-color:var(--blue); }
+
+  .pin { display:inline-block; background:var(--blue); color:#fff; border-radius:12px; padding:3px 9px; font-size:13px; font-weight:700; white-space:nowrap; border:2px solid #fff; box-shadow:0 1px 5px rgba(0,0,0,.35); transform:translate(-50%,-50%); }
+  .pin.me { background:var(--green); }
+  .toast { position:fixed; left:50%; bottom:50%; transform:translateX(-50%); background:rgba(0,0,0,.8); color:#fff; padding:10px 16px; border-radius:12px; z-index:10000; font-size:14px; }
 </style>
 </head>
 <body>
 
+<!-- 시작 화면 -->
 <section id="join">
-  <h1>📍 건부추노</h1>
-  <p class="sub">서로 아는 대학원생끼리, <b>본인이 켰을 때만</b> 위치를 공유합니다. 언제든 끌 수 있고, 끄면 위치가 바로 지워집니다.</p>
-  <div class="card">
-    <label for="name">내 이름 (그룹원에게 보여요)</label>
-    <input id="name" maxlength="30" placeholder="예: 이양원">
-  </div>
-  <div class="card">
-    <label for="code">초대코드로 참여</label>
-    <input id="code" maxlength="6" placeholder="6자리 코드" style="text-transform:uppercase">
-    <div class="row"><button id="btnJoin">참여하기</button></div>
-  </div>
-  <div class="card">
-    <label for="gname">새 그룹 만들기</label>
-    <input id="gname" maxlength="30" placeholder="예: OO연구실">
-    <div class="row"><button id="btnCreate" class="ghost">그룹 만들기</button></div>
-  </div>
+  <div class="logo">📍</div>
+  <h1>건부추노</h1>
+  <p class="sub">내가 켤 때만 친구들에게 내 위치가 보여요</p>
+  <div id="invited" class="hidden"></div>
+  <input id="name" maxlength="20" placeholder="내 이름" autocomplete="nickname">
+  <input id="code" class="hidden" maxlength="6" placeholder="초대 코드 6자리" style="text-transform:uppercase;letter-spacing:3px">
+  <button class="big" id="btnMain">새 그룹 만들기</button>
+  <button class="link" id="btnSwitch">초대 코드가 있어요</button>
   <div class="err" id="err"></div>
 </section>
 
+<!-- 메인 화면 -->
 <section id="app" class="hidden">
   <div id="map"></div>
-  <aside id="panel">
-    <div class="grp">
-      <div><h2 id="gTitle"></h2><div class="code">초대코드 <b id="gCode"></b></div></div>
-      <button class="ghost" id="btnCopy" style="padding:8px 12px">코드 복사</button>
-    </div>
-
-    <div class="share" id="shareBox">
-      <div class="status" id="shareStatus">내 위치: 공유 안 함</div>
-      <div id="shareOff">
-        <label for="dur">공유 시간</label>
-        <select id="dur">
-          <option value="30">30분</option>
-          <option value="60" selected>1시간</option>
-          <option value="180">3시간</option>
-          <option value="0">직접 끌 때까지</option>
-        </select>
-        <div class="row"><button id="btnOn">위치 공유 시작</button></div>
-      </div>
-      <div id="shareOn" class="hidden">
-        <div class="meta" id="untilText" style="font-size:13px;color:var(--muted)"></div>
-        <div class="row"><button id="btnOff" style="background:#dc2626">공유 중지 (위치 삭제)</button></div>
-      </div>
-    </div>
-
-    <div class="members">
-      <h3>이 그룹원들이 내 위치를 볼 수 있어요</h3>
-      <div id="list"></div>
-    </div>
-
-    <div class="row"><button class="ghost" id="btnLeave">그룹 나가기</button></div>
-    <p class="note">위치는 서버 메모리에만 잠깐 보관되고 기록으로 저장되지 않습니다. 공유를 끄거나, 창을 닫거나, 공유 시간이 끝나면 즉시 지워집니다. 10분 넘게 갱신이 없으면 지도에서 사라집니다.</p>
-  </aside>
+  <div class="top">
+    <div class="pill" id="gName"></div>
+    <button class="pill invite" id="btnInvite">친구 초대</button>
+  </div>
+  <div class="sheet">
+    <div class="status"><span class="dot" id="myDot"></span><div><span id="myStatus"></span><small id="mySub"></small></div></div>
+    <button class="big" id="btnToggle"></button>
+    <div class="who" id="whoLabel"></div>
+    <div class="chips" id="chips"></div>
+    <div class="foot"><button class="link" id="btnLeave">그룹 나가기</button></div>
+  </div>
 </section>
 
-<div class="modal hidden" id="consent">
-  <div class="card">
-    <h3>위치 공유에 동의하시겠어요?</h3>
-    <ul>
-      <li><b id="cGroup"></b> 그룹원 <b id="cCount"></b>명이 내 현재 위치를 볼 수 있어요.</li>
-      <li>공유 시간: <b id="cDur"></b></li>
-      <li>언제든 ‘공유 중지’를 누르면 위치가 즉시 삭제돼요.</li>
-      <li>위치 이동 기록은 저장되지 않아요.</li>
-    </ul>
-    <div class="row">
-      <button class="ghost" id="cNo">취소</button>
-      <button id="cYes">동의하고 공유</button>
-    </div>
+<!-- 공유 시간 선택 = 동의 -->
+<div class="modal hidden" id="pick">
+  <div class="box">
+    <h3>얼마 동안 보여줄까요?</h3>
+    <p id="pickInfo"></p>
+    <button class="opt" data-min="60">1시간</button>
+    <button class="opt" data-min="180">3시간</button>
+    <button class="opt" data-min="0">내가 끌 때까지</button>
+    <button class="link" id="pickCancel">취소</button>
   </div>
 </div>
 
