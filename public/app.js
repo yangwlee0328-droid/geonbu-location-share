@@ -59,18 +59,8 @@ function entered(res) {
 function initMap() {
   if (map) return setTimeout(() => map.invalidateSize(), 50);
   map = L.map('map', { zoomControl: false }).setView([37.5408, 127.0794], 15); // 건국대 서울캠퍼스
-  // API 키가 필요 없는 지도만 사용: OpenStreetMap 기본, 안 불러와지면 Esri 지도로 전환
-  const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '&copy; OpenStreetMap', referrerPolicy: 'strict-origin-when-cross-origin',
-  }).addTo(map);
-  let errs = 0;
-  osm.on('tileerror', () => {
-    if (++errs !== 3) return;
-    map.removeLayer(osm);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-      maxZoom: 19, attribution: 'Tiles &copy; Esri',
-    }).addTo(map);
-  });
+  // 지도 이미지는 우리 서버(/tiles)를 거쳐 받음 → API 키 불필요, 지도 서버 문제 시 서버가 다른 지도로 자동 전환
+  L.tileLayer('/tiles/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
 }
 
 /* ---------- 실시간 상태 ---------- */

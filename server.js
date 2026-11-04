@@ -15,6 +15,39 @@ app.use(express.static(__dirname + '/public'));
 app.use('/vendor/leaflet', express.static(__dirname + '/node_modules/leaflet/dist'));
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
+// ---- 지도 타일 중계 ----
+// 브라우저가 외부 지도 서버에 직접 붙지 않고 이 서버를 거쳐 받음.
+// API 키가 필요 없는 지도만 순서대로 시도하고, 정상 이미지(200)일 때만 돌려줌.
+const TILE_SOURCES = [
+  (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+  (z, x, y) => `https://${'abcd'[(x + y) % 4]}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`,
+  (z, x, y) => `https://${'abc'[(x + y) % 3]}.tile.openstreetmap.fr/hot/${z}/${x}/${y}.png`,
+];
+const TILE_UA = 'geonbu-chuno/1.0 (+https://github.com/yangwlee0328-droid/geonbu-location-share)';
+const tileCache = new Map(); // key -> Buffer (최근 3000장)
+let tileSource = 0; // 마지막으로 성공한 지도부터 시도
+
+app.get('/tiles/:z/:x/:y.png', async (req, res) => {
+  const [z, x, y] = [req.params.z, req.params.x, req.params.y].map(Number);
+  if (![z, x, y].every(Number.isInteger) || z < 0 || z > 19 || x < 0 || y < 0 || x >= 2 ** z || y >= 2 ** z) return res.sendStatus(400);
+  const key = `${z}/${x}/${y}`;
+  const send = (buf) => res.set({ 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=604800' }).send(buf);
+  if (tileCache.has(key)) return send(tileCache.get(key));
+  for (let i = 0; i < TILE_SOURCES.length; i++) {
+    const idx = (tileSource + i) % TILE_SOURCES.length;
+    try {
+      const r = await fetch(TILE_SOURCES[idx](z, x, y), { headers: { 'User-Agent': TILE_UA }, signal: AbortSignal.timeout(6000) });
+      if (!r.ok || !(r.headers.get('content-type') || '').startsWith('image/')) continue;
+      const buf = Buffer.from(await r.arrayBuffer());
+      tileSource = idx;
+      tileCache.set(key, buf);
+      if (tileCache.size > 3000) tileCache.delete(tileCache.keys().next().value);
+      return send(buf);
+    } catch { /* 다음 지도 시도 */ }
+  }
+  res.sendStatus(502);
+});
+
 const server = http.createServer(app);
 const io = new Server(server);
 
