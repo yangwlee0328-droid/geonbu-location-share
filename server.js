@@ -13,7 +13,9 @@ const STALE_MS = 10 * 60 * 1000; // 10분 동안 갱신 없으면 위치 숨김
 const app = express();
 app.use(express.static(__dirname + '/public'));
 app.use('/vendor/leaflet', express.static(__dirname + '/node_modules/leaflet/dist'));
-app.get('/health', (_req, res) => res.json({ ok: true }));
+const VERSION = require('./package.json').version;
+app.get('/health', (_req, res) => res.json({ ok: true, version: VERSION }));
+app.get('/version', (_req, res) => res.json({ version: VERSION }));
 
 // ---- 지도 타일 중계 ----
 // 브라우저가 외부 지도 서버에 직접 붙지 않고 이 서버를 거쳐 받음.

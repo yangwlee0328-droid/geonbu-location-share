@@ -175,3 +175,5 @@ $('btnLeave').onclick = () => {
   $('app').classList.add('hidden');
   $('join').classList.remove('hidden');
 };
+
+fetch('/version').then((r) => r.json()).then((v) => { $('ver').textContent = '버전 ' + v.version; }).catch(() => {});
