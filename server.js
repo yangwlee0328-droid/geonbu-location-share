@@ -18,9 +18,9 @@ app.get('/health', (_req, res) => res.json({ ok: true }));
 // ---- 지도 타일 중계 ----
 // 브라우저가 외부 지도 서버에 직접 붙지 않고 이 서버를 거쳐 받음.
 // API 키가 필요 없는 지도만 순서대로 시도하고, 정상 이미지(200)일 때만 돌려줌.
+// (CARTO는 키 없이 요청하면 'API KEY REQUIRED' 그림을 200으로 돌려주므로 쓰지 않음)
 const TILE_SOURCES = [
   (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
-  (z, x, y) => `https://${'abcd'[(x + y) % 4]}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`,
   (z, x, y) => `https://${'abc'[(x + y) % 3]}.tile.openstreetmap.fr/hot/${z}/${x}/${y}.png`,
 ];
 const TILE_UA = 'geonbu-chuno/1.0 (+https://github.com/yangwlee0328-droid/geonbu-location-share)';
